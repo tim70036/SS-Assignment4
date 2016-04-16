@@ -11,6 +11,7 @@ public class GameStage extends JPanel implements Runnable {
 	
 	// Attribute
 	private int currentScore;
+	private int recordScore;
 	private int winScore;
 	private boolean stop;
 	
@@ -42,8 +43,6 @@ public class GameStage extends JPanel implements Runnable {
 	public GameStage(int w, int h, Color c)
 	{
 		// Basic setup
-		setCurrentScore(0);
-		setWinScore(1);
 		setWidth(w);
 		setHeight(h);
 		setColor(c);
@@ -56,12 +55,13 @@ public class GameStage extends JPanel implements Runnable {
 	public void init()
 	{
 		setCurrentScore(0);
-		setWinScore(1);
+		recordScore = getCurrentScore();
+		setWinScore(20);
 		setStop(false);
 		// Initialize component
 		duck = new Duck(0,300,300);
 		bg = new BG(0, 0);
-		ball = new Ball(700, 300);
+		ball = new Ball(900, 300);
 		label = new JLabel("Score : " + getCurrentScore());
 		label.setFont(new Font(label.getName(), Font.PLAIN, 25));
 		label.setBounds(310, 0, 200, 40);
@@ -108,7 +108,55 @@ public class GameStage extends JPanel implements Runnable {
 					duck.setDuckDirection(1);
 			}
 			
+			// If Score has change , Animation
+			if(getCurrentScore() != recordScore)
+			{
+				recordScore = getCurrentScore();
+				Thread scoreChange = new Thread(new Runnable(){
+					public void run() {
+						int cnt = 0;
+						while(cnt < 40)
+						{
+							cnt++;
+							// Move bg and ball
+							if(getCurrentScore() < 9)
+							{
+								bg.setBgX(bg.getBgX()-1);
+								ball.setBallCurrentX(ball.getBallCurrentX()-1);
+							}
+							// Move duck to ball
+							else
+								duck.setDuckCurrentX(duck.getDuckCurrentX() + 1);
+							
+							try {
+								Thread.sleep(30);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							repaint();
+						}
+					}
+					
+				});
+				scoreChange.start();
+				// Check Win or not
+				if(getCurrentScore() >= getWinScore())
+				{
+					try {
+						scoreChange.join();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					stop = true;
+					System.out.println("stop!!");
+				}
+			}
 			repaint();
+			
+			
+			
 			try {
 				Thread.sleep(80);
 			} catch (InterruptedException e) {
@@ -121,8 +169,11 @@ public class GameStage extends JPanel implements Runnable {
 	public void addScore()
 	{
 		// Add score
-		setCurrentScore(getCurrentScore() + 1);
+		if(getCurrentScore() < getWinScore())
+			setCurrentScore(getCurrentScore() + 1);
+		
 		// Update JLabel
 		label.setText("Score : " + getCurrentScore());
+
 	}
 }

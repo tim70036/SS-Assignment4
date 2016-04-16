@@ -37,16 +37,17 @@ public class MyWindow extends JFrame {
 		Thread painting = new Thread(stage);
 		typing.start();
 		painting.start();
-		while(true){
-			System.out.println(stage.getCurrentScore());
-			if(stage.getCurrentScore() >= stage.getWinScore())
-			{
-				break;
-			}
-		}
-		System.out.println(stage.getCurrentScore());
-		type.setStop(true);
-		stage.setStop(true);
+//		while(true){
+//			System.out.println(stage.getCurrentScore());
+//			if(stage.getCurrentScore() >= stage.getWinScore())
+//			{
+//				
+//				break;
+//			}
+//		}
+//		System.out.println(stage.getCurrentScore());
+//		type.setStop(true);
+//		stage.setStop(true);
 		//typing.interrupt();
 		//painting.suspend();
 		

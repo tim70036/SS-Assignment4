@@ -95,6 +95,7 @@ public class Typing extends JPanel implements Runnable{
 		field.addActionListener(new ActionListener(){// When user enter "enter"
 			public void actionPerformed(ActionEvent e) {
 				// Get userInput by Scanner through field
+				correct();
 				Scanner scanner = new Scanner(field.getText());
 				// User must input
 				if(scanner.hasNext())	userInput1 = scanner.next();
@@ -245,6 +246,10 @@ public class Typing extends JPanel implements Runnable{
 			
 			field.setBounds(0, 535, 300, 30);
 			repaint();
+			
+			// Check Win or not
+			if(gs.getStop() == true)
+				setStop(true);
 			
 			try {
 				Thread.sleep(30);
