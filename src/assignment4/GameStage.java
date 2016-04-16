@@ -3,7 +3,11 @@ package assignment4;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -23,9 +27,12 @@ public class GameStage extends JPanel implements Runnable {
 	private Duck duck;
 	private BG bg;
 	private Ball ball;
+	private Image win;
 	
 	// Getter Setter
-	public void setCurrentScore(int s){	currentScore = s; }
+	public void setCurrentScore(int s){	currentScore = s; 
+		label.setText("Score : " + getCurrentScore());
+	}
 	public void setWinScore(int s){	winScore = s; }
 	public void setWidth(int w){ width = w; }
 	public void setHeight(int h){height = h; }
@@ -48,16 +55,13 @@ public class GameStage extends JPanel implements Runnable {
 		setColor(c);
 		this.setSize(getWidth(), getHeight());
 		
-		init();
-	}
-	
-	// init the game
-	public void init()
-	{
-		setCurrentScore(0);
-		recordScore = getCurrentScore();
-		setWinScore(20);
-		setStop(false);
+		// Read Win picture
+		try {
+			win = ImageIO.read(new File("win.png"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		// Initialize component
 		duck = new Duck(0,300,300);
 		bg = new BG(0, 0);
@@ -68,14 +72,27 @@ public class GameStage extends JPanel implements Runnable {
 		
 		// Add component
 		this.add(label);
-		
-		repaint();
+		init();
 	}
 	
-	// Replay
-	public void replay()
+	// init the game
+	public void init()
 	{
+		setStop(false);
+		// Reset Score
+		setCurrentScore(0);
+		recordScore = getCurrentScore();
+		setWinScore(20);
 		
+		// Reset position 
+		duck.setDuckCurrentX(0);
+		duck.setDuckCurrentY(300);
+		bg.setBgX(0);
+		bg.setBgY(0);
+		ball.setBallCurrentX(900);
+		ball.setBallCurrentY(300);
+		
+		repaint();
 	}
 	
 	// Drawing method
@@ -85,6 +102,10 @@ public class GameStage extends JPanel implements Runnable {
 		g.drawImage(bg.getImage(), bg.getBgX(), bg.getBgY(),this);
 		g.drawImage(duck.getImage(), duck.getDuckCurrentX(), duck.getDuckCurrentY(), this);
 		g.drawImage(ball.getImage(), ball.getBallCurrentX(), ball.getBallCurrentY(),this);
+		
+		// If win , Show win
+		if(stop)
+			g.drawImage(win, 180, 150, this);
 	}
 	@Override
 	public void run() {

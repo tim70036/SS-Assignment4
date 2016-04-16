@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 public class MyWindow extends JFrame {
 	// Attribute
@@ -31,12 +32,33 @@ public class MyWindow extends JFrame {
 		Typing type = new Typing(300,600,new Color(224,255,255), stage);
 		this.add(type);
 		type.setBounds(0, 0, 300, 600);
+					
 		
-		// Control of Game thread
-		Thread typing = new Thread(type);
-		Thread painting = new Thread(stage);
-		typing.start();
-		painting.start();
+		while(true)
+		{
+			// Init, clear the data played before
+			stage.init();
+			type.init();
+			// Control of Game thread
+			Thread typing = new Thread(type);
+			Thread painting = new Thread(stage);
+			typing.start();
+			painting.start();
+			
+			// Wait game to stop
+			try {
+				typing.join();
+				painting.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			// Replay?
+			int replay = JOptionPane.showConfirmDialog(this,"Game Over ! Do you want to replay ? ","Game Over",
+	                JOptionPane.YES_NO_OPTION,JOptionPane.INFORMATION_MESSAGE);
+			if(replay == 1)	break;
+		}
 //		while(true){
 //			System.out.println(stage.getCurrentScore());
 //			if(stage.getCurrentScore() >= stage.getWinScore())

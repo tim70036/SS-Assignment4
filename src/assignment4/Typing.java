@@ -11,6 +11,7 @@ import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -39,8 +40,6 @@ public class Typing extends JPanel implements Runnable{
 	private int picture1Y;
 	private int picture2X;
 	private int picture2Y;
-	private String userInput1;
-	private String userInput2;
 	
 	// Data structure for picture
 	private ArrayList<Word> knownWord;
@@ -50,6 +49,11 @@ public class Typing extends JPanel implements Runnable{
 	private ArrayList<Integer>	usedIndex2;
 	private int unknownWordFileIndex;
 	private Random r;
+	
+	// Output data structure
+	private String userInput1;
+	private String userInput2;
+	private ArrayList<Word> toOutput;
 	
 	// Setter Getter
 	public void setWidth(int w){ width = w; }
@@ -82,20 +86,13 @@ public class Typing extends JPanel implements Runnable{
 		setHeight(h);
 		setColor(c);
 		setGameStage(g);
-		init();
-	}
-	
-	// init the game
-	public void init()
-	{
-		setStop(false);
+		
 		// Initialize component
 		field = new JTextField(20);
 		field.setBounds(0, 535, 300, 30);
 		field.addActionListener(new ActionListener(){// When user enter "enter"
 			public void actionPerformed(ActionEvent e) {
 				// Get userInput by Scanner through field
-				correct();
 				Scanner scanner = new Scanner(field.getText());
 				// User must input
 				if(scanner.hasNext())	userInput1 = scanner.next();
@@ -105,6 +102,16 @@ public class Typing extends JPanel implements Runnable{
 				field.setText("");
 				
 				scanner.close();
+				
+				// Check whether UserInput match known word 
+				if(knownWord.get(knownWordIndex).getWord().equals(userInput1))
+				{
+					if(userInput2 != null)// User must Input second word
+						if(!userInput2.isEmpty())// And not empty
+							correct();
+				}
+				else
+					changeBackground(false);
 			}
 		});
 		
@@ -112,56 +119,56 @@ public class Typing extends JPanel implements Runnable{
 		this.add(field);
 		
 		// Deal with data for word
+		r = new Random();
 		knownWord = new ArrayList<Word>();
 		usedIndex1 = new ArrayList<Integer>();
 		unknownWordFile = new ArrayList<String>();
 		usedIndex2 = new ArrayList<Integer>();
+		toOutput =  new ArrayList<Word>();
 		try {
 			// Read the known word into ArrayList
 			Scanner scanner = new Scanner(new File("known_words.txt"));
 			while(scanner.hasNext())
 			{
-				Word w = new Word(scanner.next(),scanner.next());
-				knownWord.add(w);
+				Word tmp = new Word(scanner.next(),scanner.next());
+				knownWord.add(tmp);
 			}
 			
 			// Read the unknown word's file name into ArrayList
 			scanner = new Scanner(new File("unknown_words.txt"));
 			while(scanner.hasNext())
 				unknownWordFile.add(scanner.next());
-			
+			scanner.close();
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		init();
+	}
+	
+	// init the game
+	public void init()
+	{
+		setStop(false);
 		
-		//	setting for picture attributes
-		r = new Random();
-		knownWordIndex = r.nextInt(knownWord.size());
-		unknownWordFileIndex = r.nextInt(unknownWordFile.size());
-		setPicture1X(5);
-		setPicture1Y(0);
-		setPicture2X(145);
-		setPicture2Y(0);
+		// Reset
+		usedIndex1.clear();
+		usedIndex2.clear();
+		toOutput.clear();
 		
 		// Read first Image for picture1 and picture2
 		changePicture1();
 		changePicture2();
 		
-		repaint();
-		
+		repaint();	
 	}
 	
-	// Change picture1 ,Reset Y
+	// Change picture1 ,Reset position
 	public void changePicture1()
 	{
-		setPicture1Y(0);
 		// Find a non use picture
 		while(usedIndex1.contains(knownWordIndex))
 			knownWordIndex = r.nextInt(knownWord.size());
-		
-		// Add to used
-		usedIndex1.add(new Integer(knownWordIndex));
 		
 		// Read Image
 		try {
@@ -169,17 +176,17 @@ public class Typing extends JPanel implements Runnable{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		//Set position
+		setPicture1Y(0);
+		setPicture1X(5);
 	}
-	// Change picture2, Reset Y
+	// Change picture2, Reset position
 	public void changePicture2()
 	{
-		setPicture2Y(0);
 		// Find a non use picture
 		while(usedIndex2.contains(unknownWordFileIndex))
 			unknownWordFileIndex = r.nextInt(unknownWordFile.size());
-		
-		// Add to used
-		usedIndex2.add(new Integer(unknownWordFileIndex));
 		
 		// Read Image
 		try {
@@ -188,14 +195,59 @@ public class Typing extends JPanel implements Runnable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		// Set position
+		setPicture2Y(0);
+		setPicture2X(15 + picture1.getWidth(this));// Avoid two pictures cover each other
+	}
+	
+	// Animation for backGround color
+	public void changeBackground(boolean correct)
+	{
+		Color a = new Color(255, 36,0);
+		Color b = new Color(142,252,0);
+		Color origin = new Color(224,255,255);
+		
+		Thread changeColor = new Thread(new Runnable(){
+			public void run() {
+				int cnt = 0;
+				while(cnt < 4)
+				{
+					if(cnt%2 == 0)
+					{
+						if(correct)	setColor(b);
+						else	setColor(a);
+					}
+					else
+						setColor(origin);
+					cnt++;
+					try {
+						Thread.sleep(400);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+			
+		});
+		changeColor.start();
 	}
 	
 	// UserInput is right
 	public void correct()
 	{
+		// Add to used
+		usedIndex1.add(new Integer(knownWordIndex));
+		usedIndex2.add(new Integer(unknownWordFileIndex));
+		
+		// Add to toOutput
+		toOutput.add(new Word(unknownWordFile.get(unknownWordFileIndex) ,  userInput2));
+		
 		getGameStage().addScore();
 		changePicture1();
 		changePicture2();
+		changeBackground(true);
+		
 	}
 	
 	// Drawing method
@@ -206,25 +258,6 @@ public class Typing extends JPanel implements Runnable{
 		g.drawImage(picture2, picture2X, picture2Y, this);
 	}
 	
-//	@Override
-//	public void keyTyped(KeyEvent e) {
-//		// TODO Auto-generated method stub
-//
-//	}
-//
-//	@Override
-//	public void keyPressed(KeyEvent e) {
-//		// TODO Auto-generated method stub
-//
-//	}
-//
-//	@Override
-//	public void keyReleased(KeyEvent e) {
-//		// TODO Auto-generated method stub
-//
-//	}
-
-	@Override
 	public void run() {
 		while(!stop)
 		{
@@ -238,11 +271,6 @@ public class Typing extends JPanel implements Runnable{
 			if(getPicture2Y() >= 500)
 				changePicture2();
 							
-			// Check whether UserInput match known word 
-			if(knownWord.get(knownWordIndex).getWord().equals(userInput1))
-				if(userInput2 != null)// User must Input second word
-					if(!userInput2.isEmpty())// And not empty
-						correct();
 			
 			field.setBounds(0, 535, 300, 30);
 			repaint();
@@ -258,7 +286,18 @@ public class Typing extends JPanel implements Runnable{
 				e.printStackTrace();
 			}
 		}
-
+		
+		// GameOver output the file
+		try {
+			PrintWriter w = new PrintWriter("output.txt");
+			for(Word cur : toOutput)
+				w.println(cur.getFile() + " " + cur.getWord());
+			w.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 }
