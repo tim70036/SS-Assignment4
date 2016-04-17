@@ -241,6 +241,7 @@ public class Typing extends JPanel implements Runnable{
 		usedIndex2.add(new Integer(unknownWordFileIndex));
 		
 		// Add to toOutput
+		toOutput.add(knownWord.get(knownWordIndex));
 		toOutput.add(new Word(unknownWordFile.get(unknownWordFileIndex) ,  userInput2));
 		
 		getGameStage().addScore();
