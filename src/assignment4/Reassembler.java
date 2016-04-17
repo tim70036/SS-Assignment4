@@ -11,20 +11,20 @@ public class Reassembler {
 		try {
 			// Read File of output.txt
 			Scanner scanner = new Scanner(new File(args[0]));
-			
+
 			// Read output.txt, and record the ,row ,col, data in word
 			while(scanner.hasNext())
 			{
 				String file = scanner.next();
 				String data = scanner.next();
-				
+
 				// Place the word
 				int row = Integer.parseInt(file.substring(0, 2));
 				int col = Integer.parseInt(file.substring(3,5));
 				//System.out.println(data + " : " + row + " " +  col);
 				word[row][col] = data;
 			}
-			
+
 			// Output
 			for(int i=1 ; i<=15 ; i++)
 			{
